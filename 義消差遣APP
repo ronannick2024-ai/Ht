@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自強義消差遣系統</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Lucide Icons (用於報名人數圖示) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 使用 Inter 作為主要字體，並加入中文支援 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght=400;700&display=swap');
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            /* 調整背景色為深色 */
+            background-color: #111827; /* Tailwind bg-gray-900 */
+        }
+        /* 讓表格行內的點擊事件不會與刪除按鈕衝突 */
+        .record-row > td:not(:last-child) {
+            cursor: pointer;
+        }
+
+        /* --- 旋轉動畫定義：平面水平翻轉 (RotateY) --- */
+        @keyframes horizontal-flip {
+            from {
+                transform: rotateY(0deg); /* 繞 Y 軸旋轉 0 度 */
+            }
+            to {
+                transform: rotateY(360deg); /* 繞 Y 軸旋轉 360 度 */
+            }
+        }
+
+        .spinning-logo {
+            animation: horizontal-flip 6s linear infinite; /* 應用水平翻轉動畫 */
+            width: 60px; /* 徽章大小略為加大 */
+            height: 60px;
+            
+            /* 關鍵：設定透視和 3D 效果以確保水平翻轉可見 */
+            transform-style: preserve-3d;
+            perspective: 500px; 
+        }
+        
+        /* 設置 SVG 顏色和基礎陰影 */
+        .fire-emblem-svg {
+            filter: drop-shadow(0 4px 6px rgba(59, 130, 246, 0.5)); /* 藍色陰影 */
+        }
+        /* --- 旋轉動畫定義結束 --- */
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <!-- 主容器：深灰色背景，淺色陰影 -->
+    <div class="w-full max-w-5xl bg-gray-800 shadow-2xl shadow-gray-900/50 rounded-xl p-8 space-y-8">
+
+        <!-- 標題部分：Flex 佈局以放置 Logo -->
+        <header class="pb-4 border-b-2 border-red-600 flex justify-between items-center">
+            
+            <!-- Logo 與 標題文字組成的區塊 -->
+            <div class="flex items-center space-x-4">
+                
+                <!-- 旋轉圖案：自製 SVG 台灣義消徽章 -->
+                <div class="spinning-logo" title="臺灣義消徽章 - 水平翻轉中">
+                    <svg class="fire-emblem-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        
+                        <!-- 1. 基礎盾牌形狀 (藍色底，代表保護) -->
+                        <path d="M50 5 L10 25 L10 80 L50 95 L90 80 L90 25 Z" fill="#3B82F6" stroke="#1D4ED8" stroke-width="3"/>
+
+                        <!-- 2. 青天白日 (12道光芒) -->
+                        <g transform="translate(50, 40)" fill="#FFFFFF">
+                            <circle cx="0" cy="0" r="10"/>
+                            <!-- 12 道光芒 (簡化) -->
+                            <rect x="-1" y="-20" width="2" height="15" transform="rotate(0)"/>
+                            <rect x="-1" y="-20" width="2" height="15" transform="rotate(30)"/>
+                            <rect x="-1" y="-20" width="2" height="15" transform="rotate(60)"/>
+                            <rect x="-1" y="-20" width="2" height="15" transform="rotate(90)"/>
+                            <rect x="-1" y="-20" width="2" height="15" transform="rotate(120)"/>
+                            <rect x="-1" y="-20" width="2" height="15" transform="rotate(150)"/>
+                        </g>
+
+                        <!-- 3. 鳳凰羽翼 (金色，象徵迅速與榮耀) -->
+                        <path d="M50 50 C20 40 10 55 10 70 C30 60 50 60 50 50 Z" fill="#FBBF24" stroke="#D97706" stroke-width="2"/>
+                        <path d="M50 50 C80 40 90 55 90 70 C70 60 50 60 50 50 Z" fill="#FBBF24" stroke="#D97706" stroke-width="2"/>
+                        
+                        <!-- 4. 交叉消防斧與水帶接頭 (紅色，象徵工具與戰力) -->
+                        <g transform="translate(50, 80) scale(0.4)">
+                             <!-- 斧頭 (簡化) -->
+                            <rect x="-30" y="-30" width="10" height="70" transform="rotate(-45)" fill="#EF4444" stroke="#B91C1C" stroke-width="4"/>
+                            <rect x="20" y="-30" width="10" height="70" transform="rotate(45)" fill="#EF4444" stroke="#B91C1C" stroke-width="4"/>
+                        </g>
+                        
+                        <!-- 5. 綬帶 (紅底白字) -->
+                        <path d="M15 75 C30 70 70 70 85 75 L85 80 C70 75 30 75 15 80 Z" fill="#DC2626" stroke="#B91C1C" stroke-width="2"/>
+                        <text x="50" y="78" font-family="'Noto Sans TC', sans-serif" font-size="8" font-weight="700" text-anchor="middle" fill="white">
+                            臺灣 義消
+                        </text>
+
+                    </svg>
+                </div>
+
+                <div>
+                    <h1 class="text-4xl font-bold text-red-400">自強義消差遣系統</h1>
+                    <p class="text-gray-400 mt-1">SST Fire Brigade Dispatch System Interface</p>
+                </div>
+            </div>
+
+            <!-- 登入/狀態區塊 -->
+            <div class="flex items-center space-x-4">
+                 <!-- 隊員/管理員 登入按鈕 -->
+                <button id="auth-button" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md shadow-lg hover:bg-blue-700 transition duration-150">
+                    隊員/管理員 登入
+                </button>
+                <div id="auth-status" class="text-right">
+                    <p class="text-sm font-medium" id="user-status-text">身份：訪客</p>
+                    <button id="logout-button" class="hidden px-2 py-1 mt-1 bg-red-600 text-white text-xs font-semibold rounded-md shadow-md hover:bg-red-700 transition duration-150">
+                        登出
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 系統儀表板卡片 (保持不變) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-green-500 text-gray-900 p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-2">任務總數</h2>
+                <p id="official-duty-count" class="text-4xl font-bold">0</p>
+            </div>
+            <div class="bg-red-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-2">執行中任務</h2>
+                <p id="active-duty-count" class="text-4xl font-bold">0</p>
+            </div>
+            <div class="bg-yellow-500 text-gray-900 p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-2">已完成任務</h2>
+                <p id="completed-duty-count" class="text-4xl font-bold">0</p>
+            </div>
+        </div>
+
+        <!-- 主要操作區塊：僅管理員可見 -->
+        <section id="dispatch-control-panel" class="bg-gray-900 p-6 rounded-lg shadow-inner shadow-black/50 hidden">
+            <h3 class="text-2xl font-semibold text-gray-100 mb-4 border-b border-gray-700 pb-2">差遣中心控制台 (管理員專用)</h3>
+
+            <!-- 差遣表單 -->
+            <form id="dispatch-form" class="space-y-4">
+                
+                <!-- 任務項目：更新為新的三大分類 -->
+                <div>
+                    <label for="incident-type" class="block text-sm font-medium text-gray-300">任務項目 (勤務項目)</label>
+                    <select id="incident-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-800 text-gray-100 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm rounded-md shadow-sm">
+                        
+                        <!-- 1. 公差勤務 -->
+                        <option disabled>--- 1. 公差勤務 (Official Duty) ---</option>
+                        <option value="公差勤務 - 勤務支援">公差勤務 - 勤務支援 (內容由下方填寫)</option>
+                        
+                        <!-- 2. 災害勤務 -->
+                        <option disabled>--- 2. 災害勤務 (Disaster Duty) ---</option>
+                        <option value="災害勤務 - 住宅火警">災害勤務 - 住宅火警</option>
+                        <option value="災害勤務 - 工廠火警">災害勤務 - 工廠火警</option>
+                        <option value="災害勤務 - 雜草火警">災害勤務 - 雜草火警</option>
+                        <option value="災害勤務 - 大型災害事故">災害勤務 - 大型災害事故</option>
+                        
+                        <!-- 3. 訓練課程 -->
+                        <option disabled>--- 3. 訓練課程 (Training Course) ---</option>
+                        <option value="訓練課程 - 組訓">訓練課程 - 組訓 (常年訓練)</option>
+                        <option value="訓練課程 - 水訓">訓練課程 - 水訓 (水域救援)</option>
+                        <option value="訓練課程 - 山訓">訓練課程 - 山訓 (山域救援)</option>
+                        <option value="訓練課程 - 救助訓">訓練課程 - 救助訓 (EMT/特搜)</option>
+                    </select>
+                </div>
+                
+                <!-- 排定報到日期 (勤務日期) -->
+                <div>
+                    <label for="dispatch-date" class="block text-sm font-medium text-gray-300">排定報到日期 (勤務日期，選填)</label>
+                    <input type="date" id="dispatch-date" class="mt-1 block w-full border border-gray-600 bg-gray-800 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm">
+                </div>
+
+                <!-- 排定報到時間 (時間) -->
+                <div>
+                    <label for="dispatch-time" class="block text-sm font-medium text-gray-300">排定報到時間 (時間，選填)</label>
+                    <input type="time" id="dispatch-time" class="mt-1 block w-full border border-gray-600 bg-gray-800 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm">
+                </div>
+
+                <!-- 差遣地點 -->
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-300">差遣地點/課程地點</label>
+                    <input type="text" id="location" placeholder="請輸入詳細地址或訓練地點" class="mt-1 block w-full border border-gray-600 bg-gray-800 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm" required>
+                </div>
+                
+                <!-- 任務提示 (勤務提示) -->
+                <div>
+                    <label for="details" class="block text-sm font-medium text-gray-300">任務提示 (完整內容)</label>
+                    <textarea id="details" rows="3" placeholder="請簡述任務提示、注意事項或公差勤務內容..." class="mt-1 block w-full border border-gray-600 bg-gray-800 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm"></textarea>
+                </div>
+
+                <!-- 差遣按鈕 -->
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-lg text-lg font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                    啟動自強義消差遣
+                </button>
+            </form>
+        </section>
+
+        <!-- 訊息提示區塊 -->
+        <div id="message-box" class="mt-4 p-3 bg-red-900 border border-red-700 text-red-300 rounded-md hidden" role="alert">
+            <!-- 訊息會在這裡顯示 -->
+        </div>
+
+        <!-- 歷史差遣紀錄 -->
+        <section class="mt-8">
+            <h3 class="text-2xl font-semibold text-gray-100 mb-4">任務紀錄 (點擊紀錄查看詳情)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700 shadow-md rounded-lg">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <!-- 欄位標頭與之前相同 -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                發布時間
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                排定報到時間
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                任務項目
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                任務提示
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                報名/人員
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                地點
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                狀態
+                            </th>
+                            <!-- 刪除欄位，現在只在管理員模式下顯示內容 -->
+                            <th scope="col" id="admin-delete-header" class="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider hidden">
+                                刪除
+                            </th>
+                        </tr>
+                    </thead>
+                    <!-- 表格主體將由 JavaScript 動態生成 -->
+                    <tbody id="dispatch-records-body" class="bg-gray-800 divide-y divide-gray-700">
+                        <tr><td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">載入中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 編輯彈窗 (Modal) 結構 - 用於隊員查看詳情和報名，管理員編輯 -->
+    <div id="edit-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 w-full max-w-lg rounded-xl shadow-2xl p-6 border-2 border-red-600">
+            <h3 class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2" id="modal-title">任務詳情</h3>
+            <form id="edit-form" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                
+                <!-- 顯示發布任務時間（只讀） -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300">發布任務時間 (記錄)</label>
+                    <input type="text" id="edit-creation-time" class="read-only-input mt-1 block w-full py-2 px-3 text-base border-gray-600 bg-gray-700 text-gray-400 rounded-md shadow-sm cursor-not-allowed" readonly>
+                </div>
+                
+                <!-- 顯示排定報到時間（只讀） -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300">排定報到時間 (排定)</label>
+                    <input type="text" id="edit-scheduled-time" class="read-only-input mt-1 block w-full py-2 px-3 text-base border-gray-600 bg-gray-700 text-gray-400 rounded-md shadow-sm cursor-not-allowed" readonly>
+                </div>
+
+                <!-- 任務項目：更新為新的三大分類 -->
+                <div>
+                    <label for="edit-incident-type" class="block text-sm font-medium text-gray-300">任務項目</label>
+                    <select id="edit-incident-type" class="edit-field mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-800 text-gray-100 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm rounded-md shadow-sm" disabled>
+                        
+                        <!-- 1. 公差勤務 -->
+                        <option disabled>--- 1. 公差勤務 (Official Duty) ---</option>
+                        <option value="公差勤務 - 勤務支援">公差勤務 - 勤務支援 (內容由下方填寫)</option>
+                        
+                        <!-- 2. 災害勤務 -->
+                        <option disabled>--- 2. 災害勤務 (Disaster Duty) ---</option>
+                        <option value="災害勤務 - 住宅火警">災害勤務 - 住宅火警</option>
+                        <option value="災害勤務 - 工廠火警">災害勤務 - 工廠火警</option>
+                        <option value="災害勤務 - 雜草火警">災害勤務 - 雜草火警</option>
+                        <option value="災害勤務 - 大型災害事故">災害勤務 - 大型災害事故</option>
+                        
+                        <!-- 3. 訓練課程 -->
+                        <option disabled>--- 3. 訓練課程 (Training Course) ---</option>
+                        <option value="訓練課程 - 組訓">訓練課程 - 組訓 (常年訓練)</option>
+                        <option value="訓練課程 - 水訓">訓練課程 - 水訓 (水域救援)</option>
+                        <option value="訓練課程 - 山訓">訓練課程 - 山訓 (山域救援)</option>
+                        <option value="訓練課程 - 救助訓">訓練課程 - 救助訓 (EMT/特搜)</option>
+                        
+                    </select>
+                </div>
+                
+                <!-- 差遣地點 -->
+                <div>
+                    <label for="edit-location" class="block text-sm font-medium text-gray-300">差遣地點/課程地點</label>
+                    <input type="text" id="edit-location" class="edit-field mt-1 block w-full border border-gray-600 bg-gray-800 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm" required disabled>
+                </div>
+                
+                <!-- 任務提示 (已成為唯讀的 textarea) -->
+                <div>
+                    <label for="edit-details" class="block text-sm font-medium text-gray-300">任務提示 (完整內容)</label>
+                    <textarea id="edit-details" rows="3" class="edit-field mt-1 block w-full border border-gray-600 bg-gray-800 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm" disabled></textarea>
+                </div>
+                
+                <!-- 已報名人員名單 (只讀) -->
+                <div>
+                    <label for="edit-signed-up-list" class="block text-sm font-medium text-gray-300">已報名人員名單</label>
+                    <textarea id="edit-signed-up-list" rows="2" class="read-only-input mt-1 block w-full py-2 px-3 text-base border-gray-600 bg-gray-700 text-green-300 rounded-md shadow-sm cursor-not-allowed" readonly placeholder="目前無人報名"></textarea>
+                </div>
+
+                <!-- 狀態 -->
+                <div>
+                    <label for="edit-status" class="block text-sm font-medium text-gray-300">狀態</label>
+                    <select id="edit-status" class="edit-field mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-800 text-gray-100 focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm rounded-md shadow-sm" disabled>
+                        <option value="執行中">執行中</option>
+                        <option value="結束任務">結束任務</option>
+                    </select>
+                </div>
+
+                <!-- 動作按鈕：一般隊員僅看到取消/報名；管理員看到刪除/取消/儲存 -->
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="modal-delete-button" class="hidden px-4 py-2 border border-red-600 text-red-400 rounded-md hover:bg-red-900 transition duration-150">
+                        刪除紀錄
+                    </button>
+                    <button type="button" id="modal-close-button" class="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition duration-150">
+                        取消
+                    </button>
+                    <button type="submit" id="modal-save-button" class="hidden px-4 py-2 border border-transparent rounded-md text-gray-900 font-medium bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition duration-150">
+                        儲存修改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 編輯彈窗結束 -->
+
+    <!-- 隊員/管理員 驗證彈窗 (取代原 admin-login-modal) -->
+    <div id="member-auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 w-full max-w-sm rounded-xl shadow-2xl p-6 border-2 border-blue-600">
+            <h3 class="text-2xl font-bold text-blue-400 mb-4 border-b border-gray-700 pb-2" id="auth-modal-title">隊員登入</h3>
+            
+            <!-- 註冊/登入 模式切換 -->
+            <div class="flex space-x-2 mb-4">
+                <button id="mode-login-btn" class="flex-1 py-2 text-sm font-semibold rounded-md bg-blue-600 text-white transition duration-150">
+                    隊員登入
+                </button>
+                <button id="mode-register-btn" class="flex-1 py-2 text-sm font-semibold rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition duration-150">
+                    註冊會員
+                </button>
+            </div>
+
+            <form id="auth-form" class="space-y-4">
+                <!-- 隊員名稱 (用於註冊和登入) -->
+                <div>
+                    <label for="auth-name" class="block text-sm font-medium text-gray-300">隊員名稱</label>
+                    <input type="text" id="auth-name" placeholder="請輸入隊員名稱" class="mt-1 block w-full border border-gray-600 bg-gray-700 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-400 focus:border-blue-400 sm:text-sm" required>
+                </div>
+                <!-- 密碼 -->
+                <div>
+                    <label for="auth-password" class="block text-sm font-medium text-gray-300">密碼</label>
+                    <input type="password" id="auth-password" placeholder="請輸入密碼" class="mt-1 block w-full border border-gray-600 bg-gray-700 text-gray-100 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-400 focus:border-blue-400 sm:text-sm" required>
+                </div>
+                <div id="auth-message" class="text-red-400 text-sm hidden"></div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="close-auth-modal-button" class="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition duration-150">
+                        取消
+                    </button>
+                    <button type="submit" id="submit-auth-button" class="px-4 py-2 border border-transparent rounded-md text-gray-900 font-medium bg-blue-500 hover:bg-blue-600 transition duration-150">
+                        登入
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 隊員/管理員 驗證彈窗結束 -->
+
+    <!-- 密碼修改彈窗 (保留，但現在主要用於管理員) -->
+    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 w-full max-w-sm rounded-xl shadow-2xl p-6 border-2 border-yellow-600">
+            <h3 class="text-2xl font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2">修改管理員密碼</h3>
+            <form id="password-form" class="space-y-4">
+                <div>
+                    <label for="current-password" class="block text-sm font-medium text-gray-300">舊密碼</label>
+                    <input type="password" id="current-password" class="mt-1 block w-full border border-gray-600 bg-gray-700 text-gray-100 rounded-md shadow-sm py-2 px-3" required>
+                </div>
+                <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-300">新密碼</label>
+                    <input type="password" id="new-password" class="mt-1 block w-full border border-gray-600 bg-gray-700 text-gray-100 rounded-md shadow-sm py-2 px-3" required>
+                </div>
+                <div>
+                    <label for="confirm-password" class="block text-sm font-medium text-gray-300">確認新密碼</label>
+                    <input type="password" id="confirm-password" class="mt-1 block w-full border border-gray-600 bg-gray-700 text-gray-100 rounded-md shadow-sm py-2 px-3" required>
+                </div>
+                <div id="password-message" class="text-red-400 text-sm hidden"></div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="close-password-modal-button" class="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition duration-150">
+                        取消
+                    </button>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md text-gray-900 font-medium bg-yellow-500 hover:bg-yellow-600 transition duration-150">
+                        儲存新密碼
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 密碼修改彈窗結束 -->
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, serverTimestamp, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // For debugging
+
+        // --- 全局變數 & 設定 ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // --- 管理員憑證 (依據使用者要求硬編碼) ---
+        const ADMIN_ID_DEFAULT = '自強03';
+        const ADMIN_PASS_DEFAULT = '0000';
+        let currentAdminPass = ADMIN_PASS_DEFAULT; // 可被修改的密碼
+
+        // --- 狀態變數 ---
+        let db;
+        let auth;
+        let currentUserId = null;
+        let currentUserDisplay = "訪客"; 
+        let isAdmin = false; 
+        let isMember = false; // 新增隊員身份標記
+        let dispatchRecords = []; // 儲存從 Firestore 獲取的即時數據
+        let authMode = 'login'; // 'login' or 'register'
+
+        // --- 輔助函數 ---
+        const formatDateTime = (timestamp) => {
+            if (!timestamp) return '即時差遣 (NOW)';
+            // 處理 Firestore Timestamp 對象
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Taipei' }; // 台灣時間
+            const time = date.toLocaleTimeString('zh-TW', timeOptions);
+            return `${year}/${month}/${day} ${time}`;
+        };
+        
+        const getStatusClasses = (status) => {
+            if (status === '執行中') {
+                return 'bg-yellow-400 text-gray-900'; 
+            } else if (status === '結束任務') {
+                return 'bg-green-500 text-gray-900'; 
+            } else {
+                return 'bg-gray-500 text-white';
+            }
+        };
+
+        const showMessageBox = (message, isSuccess = true) => {
+            const messageBox = document.getElementById('message-box');
+            messageBox.innerHTML = message;
+            messageBox.classList.remove('hidden');
+            
+            if (isSuccess) {
+                messageBox.classList.add('bg-green-800', 'border-green-600', 'text-green-300');
+                messageBox.classList.remove('bg-red-900', 'border-red-700', 'text-red-300');
+            } else {
+                messageBox.classList.remove('bg-green-800', 'border-green-600', 'text-green-300');
+                messageBox.classList.add('bg-red-900', 'border-red-700', 'text-red-300');
+            }
+
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        };
+        
+        // --- 儀表板更新 ---
+        const updateDashboardStats = () => {
+            const totalRecords = dispatchRecords.length;
+            const activeRecords = dispatchRecords.filter(r => r.status === '執行中').length;
+            const completedRecords = dispatchRecords.filter(r => r.status === '結束任務').length;
+            
+            document.getElementById('official-duty-count').textContent = totalRecords;
+            document.getElementById('active-duty-count').textContent = activeRecords;
+            document.getElementById('completed-duty-count').textContent = completedRecords;
+        };
+        
+        // --- UI 權限控制更新 ---
+        const updateUIVisibility = () => {
+            const adminPanel = document.getElementById('dispatch-control-panel');
+            const authBtn = document.getElementById('auth-button');
+            const logoutBtn = document.getElementById('logout-button');
+            const userStatusText = document.getElementById('user-status-text');
+            const adminDeleteHeader = document.getElementById('admin-delete-header');
+
+            // 1. 管理員控制台
+            adminPanel.classList.toggle('hidden', !isAdmin);
+
+            // 2. 登入/登出按鈕
+            // 只要是成員或管理員，就顯示登出；否則顯示登入
+            const isAuthenticated = isMember || isAdmin;
+            authBtn.classList.toggle('hidden', isAuthenticated);
+            logoutBtn.classList.toggle('hidden', !isAuthenticated);
+            
+            // 3. 身份顯示
+            if (isAdmin) {
+                userStatusText.innerHTML = `<span class="text-yellow-400">身份：管理員 (${currentUserDisplay})</span>`;
+            } else if (isMember) {
+                 userStatusText.innerHTML = `<span class="text-blue-400">身份：隊員 (${currentUserDisplay})</span>`;
+            } else {
+                 userStatusText.innerHTML = `身份：訪客`;
+            }
+
+            // 4. 表格刪除欄位標題
+            adminDeleteHeader.classList.toggle('hidden', !isAdmin);
+            
+            // 5. 重新渲染表格以應用行級別權限 (報名按鈕)
+            renderDispatchRecords();
+        };
+
+        // --- 任務報名邏輯 ---
+        const enrollInTask = async (docId) => {
+            if (!isMember && !isAdmin) {
+                 showMessageBox("請先以隊員身份登入才能報名任務。", false);
+                 document.getElementById('member-auth-modal').classList.replace('hidden', 'flex');
+                 return;
+            }
+            const record = dispatchRecords.find(r => r.id === docId);
+            if (!record) return;
+
+            // 檢查是否已報名
+            if (record.signedUpUsers && record.signedUpUsers.some(u => u.id === currentUserId)) {
+                showMessageBox(`您 (${currentUserDisplay}) 已經報名此任務！`, false);
+                return;
+            }
+
+            try {
+                const newSignUp = { id: currentUserId, display: currentUserDisplay };
+                const updatedUsers = [...(record.signedUpUsers || []), newSignUp];
+                
+                const recordRef = doc(db, `artifacts/${appId}/public/data/dispatch_records`, docId);
+                await updateDoc(recordRef, { signedUpUsers: updatedUsers });
+                
+                showMessageBox(`報名成功！您 (${currentUserDisplay}) 已加入任務。`, true);
+            } catch (e) {
+                console.error("報名失敗: ", e);
+                showMessageBox('報名失敗：無法更新資料庫。', false);
+            }
+        };
+
+        // --- CRUD 操作 (簡化) ---
+
+        // 刪除紀錄
+        const deleteRecord = async (docId) => {
+            if (!isAdmin) {
+                showMessageBox('權限不足：您必須是管理員才能刪除紀錄。', false);
+                return;
+            }
+
+            // 替代 window.confirm()
+            const confirmDelete = await new Promise(resolve => {
+                const modal = document.createElement('div');
+                modal.classList.add('fixed', 'inset-0', 'bg-gray-900', 'bg-opacity-75', 'flex', 'items-center', 'justify-center', 'p-4', 'z-50');
+                modal.innerHTML = `
+                    <div class="bg-gray-800 w-full max-w-xs rounded-xl shadow-2xl p-6 border-2 border-red-600">
+                        <p class="text-lg text-gray-100 mb-4">確認刪除這筆紀錄嗎？</p>
+                        <div class="flex justify-end space-x-3">
+                            <button id="cancel-btn" class="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition duration-150">取消</button>
+                            <button id="confirm-btn" class="px-4 py-2 border border-transparent rounded-md text-white font-medium bg-red-600 hover:bg-red-700 transition duration-150">確認刪除</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                document.getElementById('confirm-btn').onclick = () => { document.body.removeChild(modal); resolve(true); };
+                document.getElementById('cancel-btn').onclick = () => { document.body.removeChild(modal); resolve(false); };
+            });
+
+            if (!confirmDelete) return;
+
+            try {
+                const recordRef = doc(db, `artifacts/${appId}/public/data/dispatch_records`, docId);
+                await deleteDoc(recordRef);
+                showMessageBox(`紀錄 ID: ${docId} 已被刪除。`, true);
+                closeEditModal();
+            } catch (e) {
+                console.error("刪除失敗: ", e);
+                showMessageBox('刪除失敗：無法連線至資料庫。', false);
+            }
+        };
+
+        // 渲染表格 (與原程式碼相同，但現在報名按鈕會根據 isMember/isAdmin 狀態顯示)
+        const renderDispatchRecords = () => {
+            const tbody = document.getElementById('dispatch-records-body');
+            tbody.innerHTML = ''; 
+
+            if (dispatchRecords.length === 0) {
+                 tbody.innerHTML = `<tr>
+                     <td colspan="${isAdmin ? 8 : 7}" class="px-6 py-4 text-center text-sm text-gray-500">尚無差遣紀錄</td>
+                 </tr>`;
+                 updateDashboardStats(); 
+                 return;
+            }
+
+            dispatchRecords.forEach(record => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-gray-700', 'transition', 'duration-150', 'record-row');
+                tr.dataset.id = record.id; 
+                
+                let incidentColor = 'text-gray-100';
+                
+                // --- 根據新的三大分類設定顏色 ---
+                if (record.incident.includes('災害勤務')) {
+                    incidentColor = 'text-red-400'; // 災害勤務 (紅色)
+                } else if (record.incident.includes('訓練課程')) {
+                    incidentColor = 'text-green-400'; // 訓練課程 (綠色)
+                } else if (record.incident.includes('公差勤務')) {
+                    incidentColor = 'text-purple-400'; // 公差勤務 (紫色)
+                } else {
+                    incidentColor = 'text-gray-100'; // 其他
+                }
+                
+                const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(record.location)}`;
+                
+                // --- 報名/人員 欄位的 HTML 內容生成 ---
+                let enrollmentHtml = '';
+                const signedUpUsers = record.signedUpUsers || [];
+                const isSignedUp = signedUpUsers.some(u => u.id === currentUserId);
+                const count = signedUpUsers.length;
+                const userList = signedUpUsers.map(u => u.display).join(', ');
+                
+                if (record.status === '執行中') {
+                    if (isSignedUp) {
+                        // 已報名狀態
+                        enrollmentHtml = `
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-semibold text-green-400">已報名</span>
+                                <span title="已報名人員清單：${userList}" class="flex items-center text-xs px-2 py-1 rounded-full bg-blue-600 text-white cursor-pointer">
+                                    <i data-lucide="users" class="w-3 h-3 mr-1"></i> ${count}
+                                </span>
+                            </div>
+                        `;
+                    } else if (isMember || isAdmin) { 
+                        // 隊員或管理員：顯示報名按鈕
+                         enrollmentHtml = `
+                            <button data-id="${record.id}" class="enroll-btn px-3 py-1 text-xs font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 transition duration-150 shadow-md hover:shadow-lg">
+                                報名
+                            </button>
+                        `;
+                    } else {
+                        // 訪客：只顯示人數
+                        enrollmentHtml = `
+                            <span title="登入後可查看清單" class="flex items-center text-xs px-2 py-1 rounded-full bg-gray-600 text-gray-300">
+                                <i data-lucide="users" class="w-3 h-3 mr-1"></i> ${count}
+                            </span>
+                        `;
+                    }
+                } else {
+                    // 任務結束，僅顯示人數
+                    enrollmentHtml = `
+                        <span title="已報名人員清單：${userList}" class="flex items-center text-xs px-2 py-1 rounded-full bg-gray-600 text-gray-300">
+                            <i data-lucide="users" class="w-3 h-3 mr-1"></i> ${count} 人 (已結束)
+                        </span>
+                    `;
+                }
+
+                // 註：表格欄位總數為 7 (一般隊員) 或 8 (管理員)
+                tr.innerHTML = `
+                    <!-- 1. 發布時間 -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                        ${formatDateTime(record.timestamp)}
+                    </td>
+                    <!-- 2. 排定報到時間 -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${record.scheduledTimestamp ? 'text-blue-300' : 'text-gray-500'}">
+                        ${formatDateTime(record.scheduledTimestamp)}
+                    </td>
+                    <!-- 3. 任務項目 -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${incidentColor}">${record.incident}</td>
+                    <!-- 4. 任務提示 (已新增 truncate 讓內容單行顯示，點擊查看詳情) -->
+                    <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate" title="${record.details}">
+                        ${record.details}
+                    </td>
+                    <!-- 5. 報名/人員 (New Column) -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        ${enrollmentHtml}
+                    </td>
+                    <!-- 6. 地點 -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        <a href="${googleMapsUrl}" target="_blank" class="text-blue-400 hover:text-blue-300 hover:underline transition duration-150">
+                            ${record.location}
+                        </a>
+                    </td>
+                    <!-- 7. 狀態 -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(record.status)}">
+                            ${record.status}
+                        </span>
+                    </td>
+                    <!-- 8. 刪除按鈕 (僅管理員可見) -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center ${isAdmin ? '' : 'hidden'}">
+                        <button class="delete-btn px-3 py-1 text-xs font-medium rounded-md text-white bg-red-700 hover:bg-red-600 transition duration-150" data-id="${record.id}">
+                            刪除
+                        </button>
+                    </td>
+                `;
+                
+                lucide.createIcons();
+                
+                // 為所有紀錄行（非刪除按鈕）添加點擊事件 (用於開啟彈窗)
+                tr.addEventListener('click', (e) => {
+                    // 確保點擊的不是連結或按鈕
+                    if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON' && !e.target.closest('.enroll-btn') && !e.target.closest('.delete-btn')) {
+                        openEditModal(record.id);
+                    }
+                });
+
+                // 為「刪除」按鈕添加點擊事件
+                const deleteButton = tr.querySelector('.delete-btn');
+                if (deleteButton) {
+                    deleteButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        deleteRecord(record.id);
+                    });
+                }
+                
+                // 為「報名」按鈕添加點擊事件
+                const enrollButton = tr.querySelector('.enroll-btn');
+                if (enrollButton) {
+                    enrollButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        enrollInTask(record.id);
+                    });
+                }
+
+
+                tbody.appendChild(tr);
+            });
+            
+            updateDashboardStats(); 
+        };
+
+        // 設置 Firestore 數據監聽器
+        const setupRecordListener = () => {
+            if (!db) return; // DB Not ready
+            const recordsRef = collection(db, `artifacts/${appId}/public/data/dispatch_records`);
+            const q = query(recordsRef);
+            
+            onSnapshot(q, (snapshot) => {
+                dispatchRecords = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                // 依據發布時間倒序排序
+                dispatchRecords.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                
+                renderDispatchRecords();
+            }, (error) => {
+                console.error("Error listening to Firestore:", error);
+                showMessageBox('載入任務紀錄失敗，請檢查連線。', false);
+            });
+        };
+
+        // 顯示編輯彈窗並填入資料 (現在也用於一般隊員查看)
+        const openEditModal = (docId) => {
+            const record = dispatchRecords.find(r => r.id === docId);
+            if (!record) return;
+
+            // 設置 Modal 標題和編輯狀態
+            document.getElementById('modal-title').textContent = isAdmin ? '編輯差遣紀錄' : '任務詳情';
+            const editFields = document.querySelectorAll('.edit-field');
+            
+            // 修正區域：將多個類別字串拆分為陣列，以便與 classList.remove/add 搭配
+            const READ_ONLY_CLASSES = ['bg-gray-700', 'text-gray-400', 'cursor-not-allowed'];
+            const EDITABLE_CLASSES = ['bg-gray-800', 'text-gray-100', 'cursor-text'];
+
+            editFields.forEach(field => {
+                field.disabled = !isAdmin;
+
+                // 根據 isAdmin 狀態動態切換唯讀/可編輯樣式
+                if (isAdmin) {
+                    // 管理員：移除唯讀樣式，添加可編輯樣式
+                    field.classList.remove(...READ_ONLY_CLASSES);
+                    field.classList.add(...EDITABLE_CLASSES);
+                } else {
+                    // 隊員：移除可編輯樣式，添加唯讀樣式
+                    field.classList.remove(...EDITABLE_CLASSES);
+                    field.classList.add(...READ_ONLY_CLASSES);
+                }
+            });
+
+            // 填入資料到表單欄位
+            document.getElementById('edit-id').value = record.id;
+            document.getElementById('edit-creation-time').value = formatDateTime(record.timestamp); 
+            document.getElementById('edit-scheduled-time').value = formatDateTime(record.scheduledTimestamp); 
+            document.getElementById('edit-incident-type').value = record.incident;
+            document.getElementById('edit-location').value = record.location;
+            document.getElementById('edit-details').value = record.details;
+            document.getElementById('edit-status').value = record.status;
+            
+            // 填入已報名人員名單 (只讀)
+            const signedUpUsers = record.signedUpUsers || [];
+            const signedUpList = signedUpUsers.length > 0 ? 
+                                 signedUpUsers.map(u => u.display).join('; ') : 
+                                 '目前無人報名';
+            document.getElementById('edit-signed-up-list').value = signedUpList;
+            
+            // 控制按鈕顯示
+            document.getElementById('modal-delete-button').classList.toggle('hidden', !isAdmin);
+            document.getElementById('modal-save-button').classList.toggle('hidden', !isAdmin);
+
+            document.getElementById('edit-modal').classList.replace('hidden', 'flex');
+        };
+
+        // 關閉彈窗
+        const closeEditModal = () => {
+            document.getElementById('edit-modal').classList.replace('flex', 'hidden');
+        };
+        
+        // 關閉驗證彈窗
+        const closeAuthModal = () => {
+            document.getElementById('member-auth-modal').classList.replace('flex', 'hidden');
+            document.getElementById('auth-message').classList.add('hidden');
+        };
+
+        // 關閉密碼修改彈窗
+        const closePasswordModal = () => {
+            document.getElementById('password-modal').classList.replace('flex', 'hidden');
+            document.getElementById('password-message').classList.add('hidden');
+        };
+        
+        // 隊員/管理員 登出
+        const logout = async () => {
+            isAdmin = false;
+            isMember = false;
+            currentUserDisplay = "訪客"; 
+            showMessageBox('已安全登出。', true);
+            updateUIVisibility();
+            
+            // 可以在登出後強制使用 Firebase 的 signOut
+            if (auth.currentUser) {
+                await signOut(auth).catch(e => console.error("Firebase signOut failed:", e));
+            }
+
+            // 重新進行匿名登入以保持 Firestore 連線
+            if (auth && !auth.currentUser) {
+                 // 重新觸發 onAuthStateChanged 流程
+                 await signInAnonymously(auth);
+            }
+        };
+
+        // --- 隊員驗證相關邏輯 ---
+
+        // 檢查名稱是否已存在
+        const checkMemberExists = async (name) => {
+            const membersRef = collection(db, `artifacts/${appId}/public/data/members`);
+            const q = query(membersRef, where("name", "==", name));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.length > 0 ? querySnapshot.docs[0] : null;
+        };
+
+        // 註冊邏輯
+        const memberRegister = async (name, password) => {
+            const messageEl = document.getElementById('auth-message');
+            messageEl.classList.add('hidden');
+
+            if (password.length < 4) {
+                messageEl.textContent = '密碼長度至少為4位數。';
+                messageEl.classList.remove('hidden');
+                return false;
+            }
+
+            // 1. 檢查名稱是否已被使用
+            if (await checkMemberExists(name)) {
+                messageEl.textContent = `註冊失敗：隊員名稱「${name}」已被使用。`;
+                messageEl.classList.remove('hidden');
+                return false;
+            }
+
+            try {
+                // 2. 儲存新隊員資訊
+                const membersRef = collection(db, `artifacts/${appId}/public/data/members`);
+                // 為了註冊流程簡單化，我們需要先登出匿名用戶，然後重新登入取得新的 UID
+                await signOut(auth);
+                await signInAnonymously(auth);
+                const newUserId = auth.currentUser.uid;
+                
+                await setDoc(doc(membersRef, newUserId), {
+                    name: name,
+                    password: password, // 註：實際生產環境應使用哈希密碼
+                    role: 'member',
+                    createdAt: serverTimestamp()
+                });
+
+                // 3. 更新前端狀態
+                isMember = true;
+                isAdmin = name === ADMIN_ID_DEFAULT;
+                currentUserDisplay = name;
+                currentUserId = newUserId; // 更新全局 ID
+
+                showMessageBox(`註冊成功！歡迎隊員 ${name} 加入。`, true);
+                closeAuthModal();
+                updateUIVisibility();
+                return true;
+
+            } catch (e) {
+                console.error("註冊失敗:", e);
+                messageEl.textContent = '註冊過程中發生錯誤，請稍後再試。';
+                messageEl.classList.remove('hidden');
+                return false;
+            }
+        };
+
+        // 登入邏輯
+        const memberLogin = async (name, password) => {
+            const messageEl = document.getElementById('auth-message');
+            messageEl.classList.add('hidden');
+
+            // 1. 管理員身份檢查 (硬編碼)
+            if (name === ADMIN_ID_DEFAULT && password === currentAdminPass) {
+                isMember = true;
+                isAdmin = true;
+                currentUserDisplay = ADMIN_ID_DEFAULT;
+                showMessageBox(`管理員 (${ADMIN_ID_DEFAULT}) 登入成功！`, true);
+                closeAuthModal();
+                updateUIVisibility();
+                
+                // 登入後自動彈出密碼修改提示
+                if (currentAdminPass === ADMIN_PASS_DEFAULT) {
+                    setTimeout(() => {
+                         // 替代 window.confirm()
+                         const confirmChange = async () => {
+                            const modal = document.createElement('div');
+                            modal.classList.add('fixed', 'inset-0', 'bg-gray-900', 'bg-opacity-75', 'flex', 'items-center', 'justify-center', 'p-4', 'z-50');
+                            modal.innerHTML = `
+                                <div class="bg-gray-800 w-full max-w-sm rounded-xl shadow-2xl p-6 border-2 border-yellow-600">
+                                    <p class="text-lg text-gray-100 mb-4">為了您的帳號安全，建議立即更改預設密碼。</p>
+                                    <div class="flex justify-end space-x-3">
+                                        <button id="cancel-pass-btn" class="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition duration-150">稍後</button>
+                                        <button id="confirm-pass-btn" class="px-4 py-2 border border-transparent rounded-md text-gray-900 font-medium bg-yellow-500 hover:bg-yellow-600 transition duration-150">立即修改</button>
+                                    </div>
+                                </div>
+                            `;
+                            document.body.appendChild(modal);
+                            document.getElementById('confirm-pass-btn').onclick = () => { 
+                                document.body.removeChild(modal); 
+                                document.getElementById('password-modal').classList.replace('hidden', 'flex');
+                            };
+                            document.getElementById('cancel-pass-btn').onclick = () => { 
+                                document.body.removeChild(modal); 
+                            };
+                        };
+                        confirmChange();
+
+                    }, 100);
+                }
+                return true;
+            }
+
+            // 2. 隊員身份檢查
+            const memberDoc = await checkMemberExists(name);
+            if (memberDoc) {
+                const memberData = memberDoc.data();
+                if (memberData.password === password) { // 檢查密碼
+                    isMember = true;
+                    isAdmin = false;
+                    currentUserDisplay = name;
+                    
+                    // 如果是用戶名/密碼登入成功，切換當前 Firebase 用戶到該隊員的 UID (需要重新認證或使用該隊員的 token，但此處簡化為只更新前端狀態)
+                    currentUserId = memberDoc.id;
+
+                    showMessageBox(`登入成功！歡迎隊員 ${name}。`, true);
+                    closeAuthModal();
+                    updateUIVisibility();
+                    return true;
+                }
+            }
+
+            // 3. 失敗訊息
+            messageEl.textContent = '登入失敗：隊員名稱或密碼錯誤。';
+            messageEl.classList.remove('hidden');
+            return false;
+        };
+
+
+        // --- 事件監聽器 ---
+
+        // 1. Firebase 初始化
+        window.onload = initializeFirebase;
+        
+        // 2. 新增差遣紀錄 (管理員專用) - 邏輯不變
+        document.getElementById('dispatch-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!isAdmin) {
+                showMessageBox('權限不足，只有管理員能發布差遣紀錄。', false);
+                return;
+            }
+            
+            const incidentType = document.getElementById('incident-type').value;
+            const location = document.getElementById('location').value;
+            const details = document.getElementById('details').value; 
+            
+            const scheduledDate = document.getElementById('dispatch-date').value;
+            const scheduledTime = document.getElementById('dispatch-time').value;
+
+            let scheduledReportTimestamp = null; 
+            if (scheduledDate && scheduledTime) {
+                scheduledReportTimestamp = new Date(`${scheduledDate}T${scheduledTime}`).getTime();
+            } else if (scheduledDate) {
+                scheduledReportTimestamp = new Date(`${scheduledDate}T00:00`).getTime();
+            }
+
+            try {
+                const recordsRef = collection(db, `artifacts/${appId}/public/data/dispatch_records`);
+                await addDoc(recordsRef, {
+                    timestamp: serverTimestamp(), // 使用 Firestore 服務器時間
+                    scheduledTimestamp: scheduledReportTimestamp,
+                    incident: incidentType,
+                    location: location,
+                    status: '執行中', 
+                    details: details || '無任務提示。', 
+                    signedUpUsers: []
+                });
+                
+                showMessageBox(`自強義消差遣成功！紀錄已上傳。`, true);
+                document.getElementById('dispatch-form').reset();
+
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessageBox('發布差遣失敗：無法連線至資料庫。', false);
+            }
+        });
+
+        // 3. 編輯表單提交 (儲存修改) - 管理員專用 - 邏輯不變
+        document.getElementById('edit-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!isAdmin) {
+                showMessageBox('權限不足：只有管理員能修改紀錄。', false);
+                return;
+            }
+            
+            const docId = document.getElementById('edit-id').value;
+            
+            const updatedData = {
+                incident: document.getElementById('edit-incident-type').value,
+                location: document.getElementById('edit-location').value,
+                details: document.getElementById('edit-details').value, 
+                status: document.getElementById('edit-status').value,
+            };
+
+            try {
+                const recordRef = doc(db, `artifacts/${appId}/public/data/dispatch_records`, docId);
+                await updateDoc(recordRef, updatedData);
+
+                showMessageBox(`紀錄 ID: ${docId} 已成功更新。`, true);
+                closeEditModal(); 
+            } catch (e) {
+                console.error("更新失敗: ", e);
+                showMessageBox('更新失敗：無法連線至資料庫。', false);
+            }
+        });
+        
+        // 4. 刪除紀錄 (Modal 內按鈕) - 管理員專用
+        document.getElementById('modal-delete-button').addEventListener('click', () => {
+             const docId = document.getElementById('edit-id').value;
+             deleteRecord(docId);
+        });
+
+        // 5. 關閉編輯彈窗按鈕
+        document.getElementById('modal-close-button').addEventListener('click', closeEditModal);
+
+
+        // --- 隊員/管理員 驗證相關事件 ---
+
+        // 6. 開啟驗證彈窗
+        document.getElementById('auth-button').addEventListener('click', () => {
+             document.getElementById('member-auth-modal').classList.replace('hidden', 'flex');
+             // 預設為登入模式
+             setAuthMode('login');
+        });
+        
+        // 7. 關閉驗證彈窗
+        document.getElementById('close-auth-modal-button').addEventListener('click', closeAuthModal);
+        
+        // 8. 登出按鈕
+        document.getElementById('logout-button').addEventListener('click', logout);
+
+        // 9. 驗證模式切換
+        const setAuthMode = (mode) => {
+            authMode = mode;
+            const titleEl = document.getElementById('auth-modal-title');
+            const submitBtn = document.getElementById('submit-auth-button');
+            const loginBtn = document.getElementById('mode-login-btn');
+            const registerBtn = document.getElementById('mode-register-btn');
+
+            if (mode === 'login') {
+                titleEl.textContent = '隊員登入';
+                submitBtn.textContent = '登入';
+                loginBtn.classList.replace('bg-gray-700', 'bg-blue-600');
+                loginBtn.classList.replace('text-gray-300', 'text-white');
+                registerBtn.classList.replace('bg-blue-600', 'bg-gray-700');
+                registerBtn.classList.replace('text-white', 'text-gray-300');
+            } else {
+                titleEl.textContent = '註冊新隊員';
+                submitBtn.textContent = '註冊';
+                registerBtn.classList.replace('bg-gray-700', 'bg-blue-600');
+                registerBtn.classList.replace('text-gray-300', 'text-white');
+                loginBtn.classList.replace('bg-blue-600', 'bg-gray-700');
+                loginBtn.classList.replace('text-white', 'text-gray-300');
+            }
+        };
+
+        document.getElementById('mode-login-btn').addEventListener('click', () => setAuthMode('login'));
+        document.getElementById('mode-register-btn').addEventListener('click', () => setAuthMode('register'));
+
+        // 10. 驗證表單提交 (登入或註冊)
+        document.getElementById('auth-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('auth-name').value;
+            const password = document.getElementById('auth-password').value;
+            const messageEl = document.getElementById('auth-message');
+            messageEl.classList.add('hidden');
+
+            if (!name || !password) {
+                messageEl.textContent = '隊員名稱和密碼為必填項。';
+                messageEl.classList.remove('hidden');
+                return;
+            }
+
+            if (authMode === 'login') {
+                await memberLogin(name, password);
+            } else {
+                await memberRegister(name, password);
+            }
+        });
+        
+        // 11. 密碼修改邏輯 (管理員專用) - 邏輯不變
+        document.getElementById('password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('current-password').value;
+            const newPass = document.getElementById('new-password').value;
+            const confirmPass = document.getElementById('confirm-password').value;
+            const passMessageEl = document.getElementById('password-message');
+            passMessageEl.classList.add('hidden');
+
+            if (currentPass !== currentAdminPass) {
+                passMessageEl.textContent = '舊密碼輸入錯誤。';
+                passMessageEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPass.length < 4) {
+                 passMessageEl.textContent = '新密碼長度至少為4位數。';
+                 passMessageEl.classList.remove('hidden');
+                 return;
+            }
+
+            if (newPass !== confirmPass) {
+                passMessageEl.textContent = '新密碼與確認密碼不一致。';
+                passMessageEl.classList.remove('hidden');
+                return;
+            }
+
+            // 更新密碼
+            currentAdminPass = newPass;
+            showMessageBox('管理員密碼已成功修改！', true);
+            closePasswordModal();
+        });
+        
+        // 12. 關閉密碼修改彈窗
+        document.getElementById('close-password-modal-button').addEventListener('click', closePasswordModal);
+
+
+        // --- Firebase 基礎認證 (保持讀取權限) ---
+        async function initializeFirebase() {
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase configuration is missing. Data persistence will not work.");
+                db = { initialized: false };
+                currentUserId = 'mock-user-' + Math.random().toString(36).substr(2, 9);
+                currentUserDisplay = "訪客"; // 預設為訪客
+                renderDispatchRecords();
+                updateUIVisibility();
+                return;
+            }
+
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    // 檢查用戶是否已在 members 集合中註冊過，並設定 isMember/currentUserDisplay
+                    if (!isMember && !isAdmin) { // 避免重複覆蓋已登入的狀態
+                       const membersRef = collection(db, `artifacts/${appId}/public/data/members`);
+                       
+                       const q = query(membersRef, where("__name__", "==", currentUserId));
+                       const memberSnapshot = await getDocs(q);
+
+                       if (!memberSnapshot.empty) {
+                           const memberData = memberSnapshot.docs[0].data();
+                           isMember = true;
+                           currentUserDisplay = memberData.name;
+                           if (memberData.name === ADMIN_ID_DEFAULT) {
+                               isAdmin = true;
+                           }
+                       }
+                    }
+
+                    setupRecordListener();
+                    updateUIVisibility();
+                } else {
+                    // 執行初始認證以確保有讀取權限
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                            console.error("Custom token sign-in failed, falling back to anonymous:", e);
+                            signInAnonymously(auth);
+                        });
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
